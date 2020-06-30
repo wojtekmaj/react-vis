@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import React, {PureComponent} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 import {getAttributeScale} from 'utils/scales-utils';
@@ -77,90 +77,80 @@ const animatedProps = [
   'tickTotal'
 ];
 
-class GridLines extends PureComponent {
-  _getDefaultProps() {
-    const {
-      innerWidth,
-      innerHeight,
-      marginTop,
-      marginLeft,
-      direction
-    } = this.props;
-    return {
-      left: marginLeft,
-      top: marginTop,
-      width: innerWidth,
-      height: innerHeight,
-      tickTotal: getTicksTotalFromSize(
-        direction === VERTICAL ? innerWidth : innerHeight
-      )
-    };
-  }
+function _getDefaultProps(props) {
+  const {innerWidth, innerHeight, marginTop, marginLeft, direction} = props;
+  return {
+    left: marginLeft,
+    top: marginTop,
+    width: innerWidth,
+    height: innerHeight,
+    tickTotal: getTicksTotalFromSize(
+      direction === VERTICAL ? innerWidth : innerHeight
+    )
+  };
+}
 
-  render() {
-    const {animation, className} = this.props;
-    if (animation) {
-      return (
-        <Animation {...this.props} {...{animatedProps}}>
-          <GridLines {...this.props} animation={null} />
-        </Animation>
-      );
-    }
-
-    const props = {
-      ...this._getDefaultProps(),
-      ...this.props
-    };
-
-    const {
-      attr,
-      direction,
-      width,
-      height,
-      style,
-      tickTotal,
-      tickValues,
-      top,
-      left
-    } = props;
-    const isVertical = direction === VERTICAL;
-    const tickXAttr = isVertical ? 'y' : 'x';
-    const tickYAttr = isVertical ? 'x' : 'y';
-    const length = isVertical ? height : width;
-
-    const scale = getAttributeScale(props, attr);
-    const values = getTickValues(scale, tickTotal, tickValues);
-
+export default function GridLines(props) {
+  const {animation, className} = props;
+  if (animation) {
     return (
-      <g
-        transform={`translate(${left},${top})`}
-        className={getCombinedClassName('rv-xy-plot__grid-lines', className)}
-      >
-        {values.map((v, i) => {
-          const pos = scale(v);
-          const pathProps = {
-            [`${tickYAttr}1`]: pos,
-            [`${tickYAttr}2`]: pos,
-            [`${tickXAttr}1`]: 0,
-            [`${tickXAttr}2`]: length
-          };
-          return (
-            <line
-              {...pathProps}
-              key={i}
-              className="rv-xy-plot__grid-lines__line"
-              style={style}
-            />
-          );
-        })}
-      </g>
+      <Animation {...props} {...{animatedProps}}>
+        <GridLines {...props} animation={null} />
+      </Animation>
     );
   }
+
+  const extendedProps = {
+    ..._getDefaultProps(),
+    ...props
+  };
+
+  const {
+    attr,
+    direction,
+    width,
+    height,
+    style,
+    tickTotal,
+    tickValues,
+    top,
+    left
+  } = extendedProps;
+  const isVertical = direction === VERTICAL;
+  const tickXAttr = isVertical ? 'y' : 'x';
+  const tickYAttr = isVertical ? 'x' : 'y';
+  const length = isVertical ? height : width;
+
+  const scale = getAttributeScale(extendedProps, attr);
+  const values = getTickValues(scale, tickTotal, tickValues);
+
+  return (
+    <g
+      transform={`translate(${left},${top})`}
+      className={getCombinedClassName('rv-xy-plot__grid-lines', className)}
+    >
+      {values.map((v, i) => {
+        const pos = scale(v);
+        const pathProps = {
+          [`${tickYAttr}1`]: pos,
+          [`${tickYAttr}2`]: pos,
+          [`${tickXAttr}1`]: 0,
+          [`${tickXAttr}2`]: length
+        };
+        return (
+          <line
+            {...pathProps}
+            key={i}
+            className="rv-xy-plot__grid-lines__line"
+            style={style}
+          />
+        );
+      })}
+    </g>
+  );
 }
 
 GridLines.displayName = 'GridLines';
 GridLines.defaultProps = defaultProps;
 GridLines.propTypes = propTypes;
 GridLines.requiresSVG = true;
-
-export default GridLines;
